@@ -34,6 +34,7 @@ private const val CHATS = "Chats"
 private const val MESSAGE = "message"
 private const val TIMESTAMP = "timestamp"
 private const val USERNAME = "username"
+private const val USER_ID = "user_id"
 private const val IMAGE_URL = "image_url"
 private const val USER_IMAGE_URL = "user_image_url"
 private const val RC_SIGN_IN = 0
@@ -49,34 +50,7 @@ class MainActivity : AppCompatActivity(), View.OnClickListener {
     private lateinit var mGoogleSignInClient: GoogleSignInClient
     private lateinit var userImageUrl: String
     private lateinit var username: String
-
-    override fun onClick(v: View?) {
-        when(v?.id){
-            R.id.sendImageButton -> handleSendMessage()
-        }
-    }
-
-    private fun handleSendMessage() {
-        if(!chatFieldEditText.text.toString().isEmpty()){
-            val chatMessage = chatFieldEditText.text.toString()
-            val timestamp = FieldValue.serverTimestamp()
-            val chatMap: HashMap<String, Any> = hashMapOf(
-                    MESSAGE to chatMessage,
-                    TIMESTAMP to timestamp,
-                    USERNAME to username,
-                    USER_IMAGE_URL to userImageUrl
-            )
-            chatRef.add(chatMap).addOnSuccessListener {
-                Log.d(TAG, "message added to database")
-                chatFieldEditText.text.clear()
-            }
-                    .addOnFailureListener{
-                        val errorMessage = "failed to add message to database: ${it.message}"
-                        Log.d(TAG, errorMessage)
-                        Toast.makeText(this, errorMessage, Toast.LENGTH_LONG).show()
-                    }
-        }
-    }
+    private lateinit var userId: String
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -100,6 +74,12 @@ class MainActivity : AppCompatActivity(), View.OnClickListener {
 
         mGoogleSignInClient = GoogleSignIn.getClient(this, gso)
         checkLoginStatus()
+        val user = mAuth.currentUser
+        if (user != null) {
+            username = user.displayName.toString()
+            userId = user.uid
+            userImageUrl = user.photoUrl.toString()
+        }
 
         mRecyclerView = findViewById(R.id.chatRecyclerView)
         mAdapter = ChatRecyclerViewAdapter(chatList, Glide.with(this), this)
@@ -109,6 +89,40 @@ class MainActivity : AppCompatActivity(), View.OnClickListener {
         loadChats()
 
         sendImageButton.setOnClickListener(this)
+    }
+
+    override fun onClick(v: View?) {
+        when(v?.id){
+            R.id.sendImageButton -> handleSendMessage()
+        }
+    }
+
+    override fun onStart() {
+        super.onStart()
+        checkLoginStatus()
+    }
+
+    private fun handleSendMessage() {
+        if(!chatFieldEditText.text.toString().isEmpty()){
+            val chatMessage = chatFieldEditText.text.toString()
+            val timestamp = FieldValue.serverTimestamp()
+            val chatMap: HashMap<String, Any> = hashMapOf(
+                    MESSAGE to chatMessage,
+                    TIMESTAMP to timestamp,
+                    USERNAME to username,
+                    USER_ID to userId,
+                    USER_IMAGE_URL to userImageUrl
+            )
+            chatRef.add(chatMap).addOnSuccessListener {
+                Log.d(TAG, "message added to database")
+            }
+                    .addOnFailureListener{
+                        val errorMessage = "failed to add message to database: ${it.message}"
+                        Log.d(TAG, errorMessage)
+                        Toast.makeText(this, errorMessage, Toast.LENGTH_LONG).show()
+                    }
+            chatFieldEditText.text.clear()
+        }
     }
 
     private fun checkLoginStatus() {
@@ -129,8 +143,6 @@ class MainActivity : AppCompatActivity(), View.OnClickListener {
             if (task.isSuccessful) {
                 try {
                     val account = task.getResult(ApiException::class.java)
-                    userImageUrl = account.photoUrl.toString()
-                    username = account.displayName.toString()
                     firebaseAuthWithGoogle(account)
                 } catch (e: ApiException) {
                     Log.w(TAG, "Google sign in failed", e)
@@ -143,12 +155,15 @@ class MainActivity : AppCompatActivity(), View.OnClickListener {
         }
     }
 
-    private fun firebaseAuthWithGoogle(acct: GoogleSignInAccount) {
-        Log.d(TAG, "firebaseAuthWithGoogle: ${ acct.id!!}")
-        val credential = GoogleAuthProvider.getCredential(acct.idToken, null)
+    private fun firebaseAuthWithGoogle(account: GoogleSignInAccount) {
+        Log.d(TAG, "firebaseAuthWithGoogle: ${ account.id!!}")
+        val credential = GoogleAuthProvider.getCredential(account.idToken, null)
         mAuth.signInWithCredential(credential)
                 .addOnCompleteListener(this) { task ->
                     if (task.isSuccessful) {
+                        userImageUrl = account.photoUrl.toString()
+                        username = account.displayName.toString()
+                        userId = account.id.toString()
                         Log.d(TAG, "signInWithCredential:success")
                     } else {
                         Log.w(TAG, "signInWithCredential:failure", task.exception)

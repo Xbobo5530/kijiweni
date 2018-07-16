@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/chatListItem"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
@@ -15,20 +14,22 @@
         android:layout_marginTop="8dp"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:srcCompat="@drawable/ic_user" />
+        app:srcCompat="@drawable/ic_user"
+        android:visibility="gone"
+        android:contentDescription="@string/non_current_user_desc" />
 
     <android.support.constraint.ConstraintLayout
         android:id="@+id/chatBubbleLayout"
         android:layout_width="0dp"
         android:layout_height="0dp"
         android:layout_marginBottom="8dp"
-        android:layout_marginEnd="8dp"
         android:layout_marginStart="8dp"
+        android:layout_marginEnd="8dp"
         android:layout_marginTop="8dp"
-        android:background="@drawable/chat_shate"
+        android:background="@drawable/chat_shape"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toEndOf="@+id/userImageView"
+        app:layout_constraintEnd_toStartOf="@+id/currentUserImageView"
         app:layout_constraintTop_toTopOf="parent">
 
         <TextView
@@ -37,7 +38,7 @@
             android:layout_height="wrap_content"
             android:layout_marginStart="8dp"
             android:layout_marginTop="8dp"
-            android:text="Username"
+            android:text="@string/username_text"
             android:textStyle="bold"
             app:layout_constraintEnd_toStartOf="@+id/replyImageButton"
             app:layout_constraintStart_toStartOf="parent"
@@ -48,7 +49,7 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_marginStart="8dp"
-            android:text="Chat message"
+            android:text="@string/chat_message_text"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toStartOf="@+id/replyImageButton"
             app:layout_constraintStart_toStartOf="parent"
@@ -61,7 +62,19 @@
             android:layout_marginEnd="8dp"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintTop_toTopOf="parent"
-            app:srcCompat="@drawable/ic_reply" />
+            app:srcCompat="@drawable/ic_reply"
+            android:contentDescription="@string/reply_image_button_desc" />
 
     </android.support.constraint.ConstraintLayout>
+
+    <ImageView
+        android:id="@+id/currentUserImageView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:srcCompat="@drawable/ic_user"
+        android:visibility="gone"
+        android:contentDescription="@string/current_user_image_dec" />
 </android.support.constraint.ConstraintLayout>
