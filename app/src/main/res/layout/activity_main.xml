@@ -15,6 +15,7 @@
         android:layout_marginBottom="8dp"
         android:layout_marginEnd="8dp"
         android:layout_marginStart="8dp"
+        android:elevation="12dp"
         android:ems="10"
         android:hint="@string/say_something_text"
         android:inputType="textPersonName"

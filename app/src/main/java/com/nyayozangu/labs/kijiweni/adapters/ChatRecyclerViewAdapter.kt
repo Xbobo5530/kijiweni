@@ -1,6 +1,7 @@
 package com.nyayozangu.labs.kijiweni.adapters
 
 import android.content.Context
+import android.support.v7.widget.CardView
 import android.support.v7.widget.RecyclerView
 import android.util.Log
 import android.view.LayoutInflater
@@ -43,8 +44,12 @@ class ChatRecyclerViewAdapter(private val chatList: List<ChatMessages>,
         val mAuth = FirebaseAuth.getInstance()
 
         if (mAuth.currentUser?.uid == chat.user_id) {
+            holder.userImageView.visibility = View.GONE
+            holder.currentUserImageView.visibility = View.VISIBLE
             userImageUrl?.let { setImage(it, holder.currentUserImageView) }
         }else{
+            holder.userImageView.visibility = View.VISIBLE
+            holder.currentUserImageView.visibility = View.GONE
             userImageUrl?.let { setImage(it, holder.userImageView) }
         }
 
@@ -65,7 +70,7 @@ class ChatRecyclerViewAdapter(private val chatList: List<ChatMessages>,
         try {
             val placeHolderRequest = RequestOptions()
             placeHolderRequest.placeholder(R.drawable.ic_user)
-            glide.applyDefaultRequestOptions(placeHolderRequest)
+            glide.applyDefaultRequestOptions(placeHolderRequest.circleCrop())
                     .load(userImageUrl).into(mImageView)
         } catch (e: Exception) {
             Log.d("adapter", "error setting image\n" + e.message)

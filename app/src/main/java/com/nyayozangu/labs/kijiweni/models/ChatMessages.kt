@@ -5,6 +5,7 @@ import java.util.*
 
 class ChatMessages(val message: String = "",
                    val image_url: String? = "",
+                   val video_url: String? = "",
                    var chat_id: String = "",
                    val username: String = "",
                    val user_id: String = "",

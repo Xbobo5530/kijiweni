@@ -1,6 +1,7 @@
 package com.nyayozangu.labs.kijiweni.activities
 
 import android.content.Intent
+import android.net.Uri
 import android.support.v7.app.AppCompatActivity
 import android.os.Bundle
 import android.support.v7.widget.LinearLayoutManager
@@ -27,6 +28,7 @@ import com.google.android.gms.auth.api.signin.GoogleSignInAccount
 import com.google.android.gms.auth.api.Auth
 import com.google.android.gms.common.api.GoogleApiClient
 import com.google.firebase.auth.GoogleAuthProvider
+import com.google.firebase.firestore.Query
 
 
 private const val TAG = "Sean"
@@ -56,26 +58,11 @@ class MainActivity : AppCompatActivity(), View.OnClickListener {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        mAuth = FirebaseAuth.getInstance()
-        val gso = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
-                .requestIdToken(getString(R.string.default_web_client_id))
-                .requestEmail()
-                .build()
-
-        val mGoogleApiClient = GoogleApiClient.Builder(this)
-                .enableAutoManage(this) {
-                    if (!it.isSuccess){
-                        val errorMessage = "Connections error: ${it.errorMessage}"
-                        Toast.makeText(this, errorMessage, Toast.LENGTH_LONG).show()
-                    }
-                }
-                .addApi(Auth.GOOGLE_SIGN_IN_API, gso)
-                .build()
-
-        mGoogleSignInClient = GoogleSignIn.getClient(this, gso)
+        handleLoginPreps()
         checkLoginStatus()
-        val user = mAuth.currentUser
-        if (user != null) {
+
+        if (isLoggedIn()) {
+            val user = mAuth.currentUser!!
             username = user.displayName.toString()
             userId = user.uid
             userImageUrl = user.photoUrl.toString()
@@ -86,9 +73,59 @@ class MainActivity : AppCompatActivity(), View.OnClickListener {
         mRecyclerView.layoutManager = LinearLayoutManager(this)
         mRecyclerView.adapter = mAdapter
 
+        handleIntent()
         loadChats()
 
         sendImageButton.setOnClickListener(this)
+    }
+
+    private fun handleIntent() {
+        val intent = intent
+        val action = intent.action
+        val type = intent.type
+        if (Intent.ACTION_SEND == action && type != null){
+            when {
+                "text/plain" == type -> handleSendText(intent)
+                type.startsWith("image/") -> handleSendImage(intent)
+                else -> {
+                    //handle other types of intents
+                }
+            }
+        }
+    }
+
+    private fun handleSendImage(intent: Intent?) {
+        val imgaeUri: Uri? = intent?.getParcelableExtra(Intent.EXTRA_STREAM)
+        //handle shared image
+    }
+
+    private fun handleSendText(intent: Intent?) {
+        val sharedText = intent?.getStringExtra(Intent.EXTRA_TEXT)
+        chatFieldEditText.setText(sharedText)
+    }
+
+    private fun isLoggedIn(): Boolean{
+        return mAuth.currentUser != null
+    }
+
+    private fun handleLoginPreps() {
+        mAuth = FirebaseAuth.getInstance()
+        val gso = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
+                .requestIdToken(getString(R.string.default_web_client_id))
+                .requestEmail()
+                .build()
+
+        val mGoogleApiClient = GoogleApiClient.Builder(this)
+                .enableAutoManage(this) {
+                    if (!it.isSuccess) {
+                        val errorMessage = "Connections error: ${it.errorMessage}"
+                        Toast.makeText(this, errorMessage, Toast.LENGTH_LONG).show()
+                    }
+                }
+                .addApi(Auth.GOOGLE_SIGN_IN_API, gso)
+                .build()
+
+        mGoogleSignInClient = GoogleSignIn.getClient(this, gso)
     }
 
     override fun onClick(v: View?) {
@@ -174,7 +211,8 @@ class MainActivity : AppCompatActivity(), View.OnClickListener {
     }
 
     private fun loadChats() {
-        chatRef.addSnapshotListener { querySnapshot, exception ->
+        chatRef.orderBy(TIMESTAMP, Query.Direction.ASCENDING)
+                .addSnapshotListener { querySnapshot, exception ->
             if (exception == null){
                 if (!querySnapshot?.isEmpty!!){
                     for (mDocument in querySnapshot.documentChanges){
@@ -194,5 +232,3 @@ class MainActivity : AppCompatActivity(), View.OnClickListener {
         }
     }
 }
-
-
