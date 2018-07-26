@@ -206,6 +206,10 @@ class MainActivity : AppCompatActivity(), View.OnClickListener {
                     AlertDialog.Builder(this).apply {
                         this.setTitle(getString(R.string.error_text))
                                 .setMessage(errorMessage)
+                                .setNegativeButton(getString(R.string.cancel_text)
+                                ) { dialog, _ ->
+                                    dialog.dismiss()
+                                }
                                 .setPositiveButton(getString(R.string.retry_text)) { _, _ ->
                                     signIn()
                                 }

@@ -10,4 +10,5 @@
     <string name="failed_to_signin">Failed to sign in</string>
     <string name="error_text">Error</string>
     <string name="retry_text">Retry</string>
+    <string name="cancel_text">Cancel</string>
 </resources>
