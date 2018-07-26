@@ -7,4 +7,7 @@
     <string name="current_user_image_dec">current user image</string>
     <string name="reply_image_button_desc">reply image button</string>
     <string name="non_current_user_desc">other user non current user</string>
+    <string name="failed_to_signin">Failed to sign in</string>
+    <string name="error_text">Error</string>
+    <string name="retry_text">Retry</string>
 </resources>
