@@ -56,6 +56,26 @@
                     android:text="@string/username_text"
                     android:textStyle="bold" />
 
+                <ProgressBar
+                    android:id="@+id/chatListItemProgressBar"
+                    style="?android:attr/progressBarStyleHorizontal"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="8dp"
+                    android:layout_marginEnd="8dp"
+                    android:layout_marginStart="8dp"
+                    android:layout_marginTop="8dp"
+                    android:indeterminate="true"
+                    android:visibility="gone"/>
+
+                <ImageView
+                    android:id="@+id/chatImageView"
+                    android:visibility="gone"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="8dp"
+                    android:padding="8dp" />
+
                 <TextView
                     android:id="@+id/chatMessageTextView"
                     android:layout_width="match_parent"
@@ -77,18 +97,6 @@
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:srcCompat="@drawable/ic_reply" />
-
-            <ImageView
-                android:id="@+id/chatImageView"
-                android:visibility="gone"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="8dp"
-                android:padding="8dp"
-                app:layout_constraintBottom_toBottomOf="parent"
-                app:layout_constraintEnd_toStartOf="@+id/replyImageButton"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@+id/chatMessageLayout" />
 
         </android.support.constraint.ConstraintLayout>
 

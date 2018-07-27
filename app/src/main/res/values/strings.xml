@@ -11,4 +11,7 @@
     <string name="error_text">Error</string>
     <string name="retry_text">Retry</string>
     <string name="cancel_text">Cancel</string>
+    <string name="welcome_back_text">Welcome back</string>
+    <string name="welcome_text">Welcome</string>
+    <string name="something_went_wrong">Something went wrong</string>
 </resources>
