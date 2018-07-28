@@ -74,12 +74,16 @@ class MainActivity : AppCompatActivity(), View.OnClickListener, AdapterCallback 
         actionBar?.setDisplayHomeAsUpEnabled(true)
         actionBar?.setHomeAsUpIndicator(R.drawable.ic_app_icon)
 
-        mRecyclerView = findViewById(R.id.chatRecyclerView)
+        mRecyclerView = this.findViewById(R.id.chatRecyclerView)
         val callback: AdapterCallback? = null
         mAdapter = ChatRecyclerViewAdapter(chatList, Glide.with(this), this, callback)
         mRecyclerView.layoutManager = LinearLayoutManager(this)
         mRecyclerView.adapter = mAdapter
         if (common.isLoggedIn()) {
+            val user = common.currentUser()!!
+            username = user.displayName.toString()
+            userId = user.uid
+            userImageUrl = user.photoUrl.toString()
             handleIntent()
             loadChats()
         }else{
@@ -147,26 +151,31 @@ class MainActivity : AppCompatActivity(), View.OnClickListener, AdapterCallback 
 
 
     private fun sendMessage(message: String) {
+        val timestamp = FieldValue.serverTimestamp()
+        val chatMap: HashMap<String, Any?> = hashMapOf(
+                TIMESTAMP to timestamp,
+                USERNAME to username,
+                USER_ID to userId,
+                USER_IMAGE_URL to userImageUrl
+        )
         if (!message.isEmpty()) {
-            val timestamp = FieldValue.serverTimestamp()
-            val chatMap: HashMap<String, Any?> = hashMapOf(
-                    MESSAGE to message,
-                    TIMESTAMP to timestamp,
-                    USERNAME to username,
-                    USER_ID to userId,
-                    USER_IMAGE_URL to userImageUrl
-            )
             if (chatImageUrl != null) {
-                uploadChatImage(chatMap)
+                uploadChatImage(chatMap, message)
             }else {
-                uploadChatMessage(chatMap)
+                uploadChatMessage(chatMap, message)
             }
+        }else if (chatImageUrl != null){
+            uploadChatImage(chatMap, message)
         }
         selectedImageImageView.visibility = View.GONE
         chatFieldEditText.text.clear()
+        chatImageUrl = null
     }
 
-    private fun uploadChatMessage(chatMap: HashMap<String, Any?>) {
+    private fun uploadChatMessage(chatMap: HashMap<String, Any?>, message: String) {
+        if (!message.isEmpty()) {
+            chatMap[MESSAGE] = message
+        }
         chatRef.add(chatMap).addOnSuccessListener {
             Log.d(TAG, "message added to database")
             common.stopLoading(progressBar)
@@ -178,7 +187,7 @@ class MainActivity : AppCompatActivity(), View.OnClickListener, AdapterCallback 
                 }
     }
 
-    private fun uploadChatImage(chatMap: HashMap<String, Any?>) {
+    private fun uploadChatImage(chatMap: HashMap<String, Any?>, message: String) {
         common.showProgress(progressBar)
         val randomId = UUID.randomUUID().toString()
         val filePath = common.storage().reference.child(CHAT_IMAGES).child("$randomId.jpg")
@@ -202,7 +211,7 @@ class MainActivity : AppCompatActivity(), View.OnClickListener, AdapterCallback 
                         .addOnSuccessListener {
                             val thumbDownloadUrl = it.downloadUrl
                             chatMap[CHAT_THUMB_URL] = thumbDownloadUrl.toString()
-                            uploadChatMessage(chatMap)
+                            uploadChatMessage(chatMap, message)
                         }
                         .addOnFailureListener{
                             Log.e(TAG, "failed to update message ${it.message}")
@@ -217,16 +226,16 @@ class MainActivity : AppCompatActivity(), View.OnClickListener, AdapterCallback 
         Snackbar.make(mainView, message, Snackbar.LENGTH_LONG).show()
     }
 
-    private fun checkLoginStatus() {
-        if(!common.isLoggedIn()){
-            signIn()
-        }else{
-            val user = common.currentUser()!!
-            username = user.displayName.toString()
-            userId = user.uid
-            userImageUrl = user.photoUrl.toString()
-        }
-    }
+//    private fun checkLoginStatus() {
+//        if(!common.isLoggedIn()){
+//            signIn()
+//        }else{
+//            val user = common.currentUser()!!
+//            username = user.displayName.toString()
+//            userId = user.uid
+//            userImageUrl = user.photoUrl.toString()
+//        }
+//    }
 
     private fun signIn() {
         val signInIntent = mGoogleSignInClient.signInIntent
