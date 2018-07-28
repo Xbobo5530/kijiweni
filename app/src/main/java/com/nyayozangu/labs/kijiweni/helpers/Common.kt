@@ -1,9 +1,11 @@
 package com.nyayozangu.labs.kijiweni.helpers
 
+import android.content.Context
 import android.util.Log
 import android.view.View
 import android.widget.ImageView
 import android.widget.ProgressBar
+import com.bumptech.glide.Glide
 import com.bumptech.glide.RequestManager
 import com.bumptech.glide.request.RequestOptions
 import com.firebase.ui.storage.images.FirebaseImageLoader
@@ -48,7 +50,7 @@ object Common {
         try {
             val placeHolderRequest = RequestOptions()
             placeHolderRequest.placeholder(R.drawable.ic_user)
-            glide.applyDefaultRequestOptions(placeHolderRequest.circleCrop())
+            glide.applyDefaultRequestOptions(placeHolderRequest/*.circleCrop()*/)
                     .load(userImageUrl).into(mImageView)
         } catch (e: Exception) {
             Log.d(TAG, "error setting image\n + ${e.message}")
@@ -72,31 +74,10 @@ object Common {
             val placeHolderRequest = RequestOptions()
             placeHolderRequest.placeholder(R.drawable.ic_image)
             glide.applyDefaultRequestOptions(placeHolderRequest)
-                    .load(imageUrl)
-                    .thumbnail(glide.load(thumbUrl))
-                    .into(mImageView)
+                        .load(imageUrl)
+                        .thumbnail(glide.load(thumbUrl))
+                        .into(mImageView)
             progressBar.visibility = View.GONE
-
-        } catch (e: Exception) {
-            Log.d(TAG, "error setting image\n + ${e.message}")
-        }
-    }
-
-    fun setImageByPath(imagePath: String, thumbPath: String,mImageView: ImageView,
-                 glide: RequestManager, progressBar: ProgressBar) {
-        progressBar.visibility = View.VISIBLE
-        val imagePathRef = this.storage().reference.child(imagePath)
-        val thumbPathRef = this.storage().reference.child(thumbPath)
-        try {
-            val placeHolderRequest = RequestOptions()
-            placeHolderRequest.placeholder(R.drawable.ic_image)
-            glide/*.using(FirebaseImageLoader())*/
-                    .applyDefaultRequestOptions(placeHolderRequest)
-                    .load(imagePathRef)
-                    .thumbnail(glide.load(thumbPathRef))
-                    .into(mImageView)
-            progressBar.visibility = View.GONE
-
         } catch (e: Exception) {
             Log.d(TAG, "error setting image\n + ${e.message}")
         }

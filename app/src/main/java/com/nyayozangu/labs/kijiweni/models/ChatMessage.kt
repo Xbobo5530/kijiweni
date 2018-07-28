@@ -5,10 +5,8 @@ import java.util.*
 
 class ChatMessage(val message: String = "",
                   val chat_image_url: String? = null,
-                  val chat_image_path: String? = null,
                   val chat_thumb_url: String? = null,
-                  val chat_thumb_path: String? = null,
-                  var chat_id: String = "",
+                  var chat_id: String? = null,
                   val username: String = "",
                   val user_id: String = "",
                   val user_image_url: String? = null,

@@ -43,7 +43,7 @@
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
                 android:padding="8dp"
-                app:layout_constraintEnd_toStartOf="@+id/replyImageButton"
+                app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toTopOf="parent"
                 app:layout_constraintBottom_toBottomOf="parent">
@@ -54,6 +54,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginStart="8dp"
                     android:text="@string/username_text"
+                    android:textColor="@color/secondaryDarkColor"
                     android:textStyle="bold" />
 
                 <ProgressBar
@@ -66,40 +67,48 @@
                     android:layout_marginStart="8dp"
                     android:layout_marginTop="8dp"
                     android:indeterminate="true"
-                    android:visibility="gone"/>
+                    android:indeterminateTint="@color/colorRed"
+                    android:visibility="gone" />
 
                 <ImageView
                     android:id="@+id/chatImageView"
-                    android:visibility="gone"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginStart="8dp"
-                    android:padding="8dp" />
+                    android:padding="8dp"
+                    android:scaleType="matrix"
+                    android:visibility="gone" />
 
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal">
                 <TextView
                     android:id="@+id/chatMessageTextView"
-                    android:layout_width="match_parent"
+                    android:layout_width="0dp"
                     android:layout_height="wrap_content"
+                    android:layout_weight="1"
                     android:layout_marginStart="8dp"
                     android:autoLink="all"
                     android:maxLength="1000"
                     android:maxLines="100"
-                    android:text="@string/chat_message_text" />
+                    android:layout_gravity="center"
+                    android:text="@string/chat_message_text"
+                    android:textIsSelectable="true"
+                    android:textColor="@color/secondaryDarkColor"/>
+
+                    <ImageButton
+                        android:id="@+id/replyImageButton"
+                        android:layout_width="30dp"
+                        android:layout_height="30dp"
+                        android:layout_marginBottom="4dp"
+                        android:layout_marginEnd="4dp"
+                        style="@android:style/Widget.Material.ActionButton"
+                        android:contentDescription="@string/reply_image_button_desc"
+                        app:srcCompat="@drawable/ic_reply"
+                        android:layout_gravity="bottom"/>
+                </LinearLayout>
             </LinearLayout>
-            <ImageButton
-                android:id="@+id/replyImageButton"
-                android:layout_width="30dp"
-                android:layout_height="30dp"
-                android:layout_marginBottom="4dp"
-                android:layout_marginEnd="4dp"
-                android:background="@android:color/transparent"
-                android:contentDescription="@string/reply_image_button_desc"
-                app:layout_constraintBottom_toBottomOf="parent"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:srcCompat="@drawable/ic_reply" />
-
         </android.support.constraint.ConstraintLayout>
-
     </android.support.v7.widget.CardView>
 
     <ImageView

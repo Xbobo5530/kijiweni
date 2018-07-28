@@ -2,6 +2,7 @@ package com.nyayozangu.labs.kijiweni.adapters
 
 import android.content.Context
 import android.support.v7.widget.RecyclerView
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -10,24 +11,25 @@ import android.widget.ImageView
 import android.widget.ProgressBar
 import android.widget.TextView
 import com.bumptech.glide.RequestManager
-import com.google.firebase.auth.FirebaseAuth
 import com.nyayozangu.labs.kijiweni.R
+import com.nyayozangu.labs.kijiweni.helpers.AdapterCallback
 import com.nyayozangu.labs.kijiweni.helpers.Common
+import com.nyayozangu.labs.kijiweni.helpers.TAG
 import com.nyayozangu.labs.kijiweni.models.ChatMessage
 
 private val common: Common = Common
 class ChatRecyclerViewAdapter(private val chatList: List<ChatMessage>,
-                              val glide: RequestManager,
-                              var context: Context?):
+                              private val glide: RequestManager,
+                              private var context: Context?,
+                              private val callback: AdapterCallback?):
         RecyclerView.Adapter<ChatRecyclerViewAdapter.ViewHolder>() {
-
-
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int):
             ChatRecyclerViewAdapter.ViewHolder{
         val view = LayoutInflater.from(parent.context)
                 .inflate(R.layout.chat_list_item, parent, false)
         this.context = parent.context
-        return ViewHolder(view)       }
+        return ViewHolder(view)
+    }
 
     override fun getItemCount(): Int = chatList.size
 
@@ -37,17 +39,13 @@ class ChatRecyclerViewAdapter(private val chatList: List<ChatMessage>,
         val message = chat.message
         val userImageUrl = chat.user_image_url
         val imageUrl = chat.chat_image_url
-        val imagePath = chat.chat_image_path
         val thumbUrl = chat.chat_thumb_url
-        val thumbPath = chat.chat_thumb_path
         holder.usernameField.text = username
         holder.messageField.text = message
 
         handleUserViewVisibility(chat, holder, userImageUrl)
         handleChatImage(imageUrl, thumbUrl, holder)
-        handleChatImageByPath(imagePath, thumbPath, holder)
-
-        holder.replyButton.setOnClickListener{handleReplyMessage()}
+        holder.replyButton.setOnClickListener{ handleReplyMessage(callback, chat.chat_id) }
     }
 
     private fun handleUserViewVisibility(chat: ChatMessage, holder: ViewHolder, userImageUrl: String?) {
@@ -71,20 +69,14 @@ class ChatRecyclerViewAdapter(private val chatList: List<ChatMessage>,
         }
     }
 
-    private fun handleChatImageByPath(imagePath: String?, thumbPath: String?, holder: ChatRecyclerViewAdapter.ViewHolder) {
-        if (imagePath != null && thumbPath != null){
-            holder.chatImageView.visibility = View.VISIBLE
-            common.setImageByPath(imagePath, thumbPath, holder.chatImageView, glide, holder.progressBar)
-        } else {
-            holder.chatImageView.visibility = View.GONE
-        }
-    }
-
-    private fun handleReplyMessage() {
+    private fun handleReplyMessage(callback: AdapterCallback?, chatId: String?) {
         //pass the chat id to the main activity and handle reply from there
+        callback?.reply(chatId)
+        Log.d(TAG, "reply button clicked in adapter")
     }
 
-    class ViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView){
+    class ViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
+
         val usernameField: TextView = itemView.findViewById(R.id.usernameTextView)
         val messageField: TextView = itemView.findViewById(R.id.chatMessageTextView)
         val userImageView: ImageView = itemView.findViewById(R.id.userImageView)
@@ -92,7 +84,8 @@ class ChatRecyclerViewAdapter(private val chatList: List<ChatMessage>,
         val replyButton : ImageButton = itemView.findViewById(R.id.replyImageButton)
         val progressBar: ProgressBar = itemView.findViewById(R.id.chatListItemProgressBar)
         val chatImageView: ImageView = itemView.findViewById(R.id.chatImageView)
+
+
     }
-
-
 }
+

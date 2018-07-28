@@ -26,6 +26,7 @@ import com.theartofdev.edmodo.cropper.CropImage
 import kotlin.collections.ArrayList
 import android.app.Activity
 import android.graphics.Bitmap
+import com.google.firebase.messaging.FirebaseMessaging
 import com.nyayozangu.labs.kijiweni.helpers.*
 import id.zelory.compressor.Compressor
 import java.io.ByteArrayOutputStream
@@ -45,7 +46,7 @@ import java.util.*
 //private const val USER_IMAGE_URL = "user_image_url"
 private const val RC_SIGN_IN = 0
 
-class MainActivity : AppCompatActivity(), View.OnClickListener {
+class MainActivity : AppCompatActivity(), View.OnClickListener, AdapterCallback {
 
     private val common: com.nyayozangu.labs.kijiweni.helpers.Common = Common
     private val login: LoginHelper = LoginHelper()
@@ -66,15 +67,32 @@ class MainActivity : AppCompatActivity(), View.OnClickListener {
         setContentView(R.layout.activity_main)
 
         handleLoginPreps()
-        checkLoginStatus()
+//        checkLoginStatus()
+        FirebaseMessaging.getInstance().subscribeToTopic("UPDATES")
+
+        val actionBar = supportActionBar
+        actionBar?.setDisplayHomeAsUpEnabled(true)
+        actionBar?.setHomeAsUpIndicator(R.drawable.ic_app_icon)
 
         mRecyclerView = findViewById(R.id.chatRecyclerView)
-        mAdapter = ChatRecyclerViewAdapter(chatList, Glide.with(this), this)
+        val callback: AdapterCallback? = null
+        mAdapter = ChatRecyclerViewAdapter(chatList, Glide.with(this), this, callback)
         mRecyclerView.layoutManager = LinearLayoutManager(this)
         mRecyclerView.adapter = mAdapter
-        handleIntent()
-        loadChats()
+        if (common.isLoggedIn()) {
+            handleIntent()
+            loadChats()
+        }else{
+            signIn()
+        }
+
         sendImageButton.setOnClickListener(this)
+        selectedImageImageView.setOnClickListener(this)
+        addImageImageButton.setOnClickListener(this)
+    }
+
+    override fun reply(chatId: String?) {
+        Log.d(TAG, "reply is clicked, chat id is $chatId")
     }
 
     private fun handleIntent() {
@@ -99,7 +117,14 @@ class MainActivity : AppCompatActivity(), View.OnClickListener {
                 sendMessage(message)
             }
             R.id.selectedImageImageView -> {
-                CropImage.activity(chatImageUri).getIntent(this)
+                CropImage.activity(chatImageUri).start(this)
+            }
+            R.id.addImageImageButton  -> {
+                Log.d(TAG, "clicked add image button")
+                CropImage.activity().start(this)
+            }
+            else -> {
+                Log.d(TAG, "clicked some other button ${v?.id}")
             }
         }
     }
@@ -158,9 +183,8 @@ class MainActivity : AppCompatActivity(), View.OnClickListener {
         val randomId = UUID.randomUUID().toString()
         val filePath = common.storage().reference.child(CHAT_IMAGES).child("$randomId.jpg")
         chatImageUri?.let { filePath.putFile(it).addOnSuccessListener {
-            val downloadUri = it.uploadSessionUri
+            val downloadUri = it.downloadUrl
             chatMap[CHAT_IMAGE_URL] = downloadUri.toString()
-            chatMap[CHAT_IMAGE_PATH] = "$CHAT_IMAGES/$randomId.jpg"
 //            uploadChatMessage(chatMap)
             val newImageFile = File(chatImageUri!!.path)
             try {
@@ -176,9 +200,8 @@ class MainActivity : AppCompatActivity(), View.OnClickListener {
                         .child("$randomId.jpg")
                         .putBytes(thumbData)
                         .addOnSuccessListener {
-                            val thumbDownloadUrl = it.uploadSessionUri.toString()
-                            chatMap[CHAT_THUMB_URL] = thumbDownloadUrl
-                            chatMap[CHAT_THUMB_PATH] = "$CHAT_IMAGES/$THUMBS/$randomId.jpg"
+                            val thumbDownloadUrl = it.downloadUrl
+                            chatMap[CHAT_THUMB_URL] = thumbDownloadUrl.toString()
                             uploadChatMessage(chatMap)
                         }
                         .addOnFailureListener{
@@ -213,7 +236,6 @@ class MainActivity : AppCompatActivity(), View.OnClickListener {
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
-
         when (requestCode){
             RC_SIGN_IN ->  handleGoogleSignIn(data)
             CropImage.CROP_IMAGE_ACTIVITY_REQUEST_CODE -> handleImagePicked(data, resultCode)
@@ -240,7 +262,6 @@ class MainActivity : AppCompatActivity(), View.OnClickListener {
     private fun handleChatImage(resultUrl: String) {
         common.setImage(resultUrl, selectedImageImageView, Glide.with(this))
         selectedImageImageView.visibility = View.VISIBLE
-        //upload image on send
     }
 
     private fun handleGoogleSignIn(data: Intent?) {
@@ -251,7 +272,7 @@ class MainActivity : AppCompatActivity(), View.OnClickListener {
         } else {
             val errorMessage = "Google sign in failed: ${task.exception?.message}"
             Log.w(TAG, errorMessage)
-            showSnack(errorMessage)
+            if (!task.exception?.message?.contains("12502")!!) showSnack(errorMessage)
         }
     }
 
@@ -283,7 +304,9 @@ class MainActivity : AppCompatActivity(), View.OnClickListener {
             }else{
                 addUser(userRef)
             }
+            loadChats()
         }
+        //add on failure
     }
 
     private fun addUser(userRef: CollectionReference) {
