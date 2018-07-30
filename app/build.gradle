@@ -44,6 +44,7 @@ dependencies {
     compile 'id.zelory:compressor:2.1.0'
     implementation 'com.google.firebase:firebase-storage:15.0.0'
     implementation 'com.firebaseui:firebase-ui-storage:0.6.0'
+    implementation "org.jetbrains.anko:anko-commons:0.10.4"
 }
 
 apply plugin: 'com.google.gms.google-services'

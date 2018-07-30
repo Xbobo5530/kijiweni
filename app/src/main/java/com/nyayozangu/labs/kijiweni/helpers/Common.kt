@@ -19,7 +19,7 @@ const val TAG = "Sean"
 const val CHATS = "Chats"
 const val USERS = "Users"
 const val MESSAGE = "message"
-const val TIMESTAMP = "timestamp"
+const val CREATED_AT = "created_at"
 const val USERNAME = "username"
 const val USER_ID = "user_id"
 const val CHAT_IMAGE_URL = "chat_image_url"
@@ -29,6 +29,11 @@ const val CHAT_THUMB_PATH = "chat_thumb_path"
 const val CHAT_IMAGES = "chat_images"
 const val THUMBS = "thumbs"
 const val USER_IMAGE_URL = "user_image_url"
+const val IMAGE_STATUS = "image_status"
+const val IMAGE_STATUS_HAS_NO_IMAGE = 0
+const val IMAGE_STATUS_IS_UPLOADING = 1
+const val IMAGE_STATUS_ERROR_UPLOADING = 2
+const val IMAGE_STATUS_UPLOAD_SUCCESS = 3
 
 
 object Common {
@@ -67,9 +72,8 @@ object Common {
             Log.d(TAG, "error setting image\n + ${e.message}")
         }
     }
-    fun setImage(imageUrl: String, thumbUrl: String,mImageView: ImageView,
-                 glide: RequestManager, progressBar: ProgressBar) {
-        progressBar.visibility = View.VISIBLE
+    fun setImage(imageUrl: String, thumbUrl: String, mImageView: ImageView,
+                 glide: RequestManager) {
         try {
             val placeHolderRequest = RequestOptions()
             placeHolderRequest.placeholder(R.drawable.ic_image)
@@ -77,7 +81,6 @@ object Common {
                         .load(imageUrl)
                         .thumbnail(glide.load(thumbUrl))
                         .into(mImageView)
-            progressBar.visibility = View.GONE
         } catch (e: Exception) {
             Log.d(TAG, "error setting image\n + ${e.message}")
         }

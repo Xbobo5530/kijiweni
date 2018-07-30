@@ -7,11 +7,14 @@
     android:layout_height="match_parent"
     tools:context=".activities.MainActivity">
 
-
     <android.support.v7.widget.CardView
         android:id="@+id/cardView"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:layout_marginBottom="8dp"
+        android:layout_marginEnd="8dp"
+        android:layout_marginStart="8dp"
+        app:cardCornerRadius="20dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent">
@@ -24,18 +27,6 @@
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent">
-
-
-            <ImageView
-                android:id="@+id/selectedImageImageView"
-                android:layout_width="match_parent"
-                android:layout_height="200dp"
-                android:layout_gravity="center"
-                android:background="@drawable/chat_shape"
-                android:scaleType="centerCrop"
-                android:visibility="gone"
-                app:srcCompat="@drawable/ic_image" />
-
 
             <ProgressBar
                 android:id="@+id/progressBar"
@@ -89,9 +80,7 @@
                     app:srcCompat="@drawable/ic_send" />
 
             </LinearLayout>
-
         </LinearLayout>
-
     </android.support.v7.widget.CardView>
 
     <android.support.v7.widget.RecyclerView
@@ -101,6 +90,34 @@
         app:layout_constraintBottom_toTopOf="@+id/cardView"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintTop_toTopOf="parent" >
+
+    </android.support.v7.widget.RecyclerView>
+
+    <ImageView
+        android:id="@+id/selectedImageImageView"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:layout_gravity="center"
+        android:background="@color/primaryColor"
+        android:scaleType="fitCenter"
+        android:visibility="gone"
+        app:layout_constraintBottom_toBottomOf="@+id/chatRecyclerView"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:srcCompat="@drawable/ic_image" />
+
+    <ImageButton
+        android:id="@+id/cancelAddImageButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="8dp"
+        android:layout_marginTop="8dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:srcCompat="@drawable/ic_close"
+        android:visibility="gone"
+        style="@android:style/Widget.Material.ActionButton"/>
 
 </android.support.constraint.ConstraintLayout>
