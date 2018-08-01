@@ -1,26 +1,27 @@
 <?xml version="1.0" encoding="utf-8"?>
 <android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    android:id="@+id/chatListItem"
+    android:id="@+id/receivedChatListItem"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:minHeight="70dp">
 
     <ImageView
-        android:id="@+id/userImageView"
+        android:id="@+id/receivedMessageUserImageView"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginStart="8dp"
         android:layout_marginTop="8dp"
         android:contentDescription="@string/non_current_user_desc"
-        android:visibility="gone"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
         app:srcCompat="@drawable/ic_user" />
 
     <android.support.v7.widget.CardView
-        android:layout_width="0dp"
+        android:id="@+id/receivedMessageCard"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:maxWidth="240dp"
         android:layout_marginBottom="8dp"
         android:layout_marginEnd="8dp"
         android:layout_marginStart="8dp"
@@ -28,18 +29,17 @@
         android:background="@drawable/chat_shape"
         app:cardCornerRadius="20dp"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toStartOf="@+id/currentUserImageView"
-        app:layout_constraintStart_toEndOf="@+id/userImageView"
+        app:layout_constraintStart_toEndOf="@+id/receivedMessageUserImageView"
         app:layout_constraintTop_toTopOf="parent">
 
         <android.support.constraint.ConstraintLayout
-            android:id="@+id/chatBubbleLayout"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent">
+            android:id="@+id/receivedMessageChatBubbleLayout"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content">
 
             <LinearLayout
-                android:id="@+id/chatMessageLayout"
-                android:layout_width="0dp"
+                android:id="@+id/receivedMessageChatMessageLayout"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
                 android:padding="8dp"
@@ -49,16 +49,19 @@
                 app:layout_constraintBottom_toBottomOf="parent">
 
                 <TextView
-                    android:id="@+id/usernameTextView"
+                    android:id="@+id/receivedMessageUsernameTextView"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
+                    android:maxWidth="240dp"
                     android:layout_marginStart="8dp"
+                    android:layout_marginEnd="8dp"
+                    android:layout_marginTop="8dp"
                     android:text="@string/username_text"
                     android:textColor="@color/secondaryDarkColor"
                     android:textStyle="bold" />
 
                 <ProgressBar
-                    android:id="@+id/chatListItemProgressBar"
+                    android:id="@+id/receivedMessageChatListItemProgressBar"
                     style="?android:attr/progressBarStyleHorizontal"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
@@ -71,37 +74,54 @@
                     android:visibility="gone" />
 
                 <ImageView
-                    android:id="@+id/chatImageView"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
+                    android:id="@+id/receivedMessageImageView"
+                    android:layout_width="300dp"
+                    android:layout_height="250dp"
                     android:padding="8dp"
-                    android:scaleType="matrix"
+                    android:scaleType="centerCrop"
                     android:visibility="gone" />
 
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="horizontal">
                 <TextView
-                    android:id="@+id/chatMessageTextView"
-                    android:layout_width="0dp"
+                    android:id="@+id/receivedMessageTextView"
+                    android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_weight="1"
+                    android:maxWidth="240dp"
                     android:layout_marginStart="8dp"
+                    android:layout_marginEnd="8dp"
+                    android:layout_marginBottom="8dp"
                     android:autoLink="all"
                     android:maxLength="1000"
                     android:maxLines="100"
-                    android:layout_gravity="center"
                     android:text="@string/chat_message_text"
                     android:textIsSelectable="true"
                     android:textColor="@color/secondaryDarkColor"/>
 
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:maxWidth="240dp"
+                    android:orientation="horizontal">
+                    <!--<TextView-->
+                        <!--android:id="@+id/sentMessageTextView"-->
+                        <!--android:layout_width="0dp"-->
+                        <!--android:layout_height="wrap_content"-->
+                        <!--android:maxWidth="240dp"-->
+                        <!--android:layout_weight="1"-->
+                        <!--android:layout_marginStart="8dp"-->
+                        <!--android:autoLink="all"-->
+                        <!--android:maxLength="1000"-->
+                        <!--android:maxLines="100"-->
+                        <!--android:layout_gravity="center"-->
+                        <!--android:text="@string/chat_message_text"-->
+                        <!--android:textIsSelectable="true"-->
+                        <!--android:textColor="@color/secondaryDarkColor"/>-->
+
                     <ImageButton
-                        android:id="@+id/replyImageButton"
-                        android:layout_width="30dp"
-                        android:layout_height="30dp"
-                        android:layout_marginBottom="4dp"
-                        android:layout_marginEnd="4dp"
+                        android:id="@+id/sentMessageReplyImageButton"
+                        android:layout_width="25dp"
+                        android:layout_height="25dp"
+                        android:layout_margin="8dp"
+                        android:visibility="gone"
                         style="@android:style/Widget.Material.ActionButton"
                         android:contentDescription="@string/reply_image_button_desc"
                         app:srcCompat="@drawable/ic_reply"
@@ -110,16 +130,4 @@
             </LinearLayout>
         </android.support.constraint.ConstraintLayout>
     </android.support.v7.widget.CardView>
-
-    <ImageView
-        android:id="@+id/currentUserImageView"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginEnd="8dp"
-        android:layout_marginTop="8dp"
-        android:contentDescription="@string/current_user_image_dec"
-        android:visibility="gone"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:srcCompat="@drawable/ic_user" />
 </android.support.constraint.ConstraintLayout>

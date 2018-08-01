@@ -65,7 +65,7 @@ class MainActivity : AppCompatActivity(), View.OnClickListener, AdapterCallback 
 
         handleLoginPreps()
 //        checkLoginStatus()
-        FirebaseMessaging.getInstance().subscribeToTopic("UPDATES")
+        FirebaseMessaging.getInstance().subscribeToTopic(UPDATES)
 
         val actionBar = supportActionBar
         actionBar?.setDisplayHomeAsUpEnabled(true)
@@ -227,6 +227,8 @@ class MainActivity : AppCompatActivity(), View.OnClickListener, AdapterCallback 
                 doAsync {
                     uploadChatImage(chatMap, newChatId)
                 }
+            }else{
+                common.sendNotification(NEW_TEXT_MESSAGE, newChatId)
             }
         }
                 .addOnFailureListener {
@@ -274,6 +276,7 @@ class MainActivity : AppCompatActivity(), View.OnClickListener, AdapterCallback 
 
     private fun updateChatMessageWithImage(chatMap: HashMap<String, Any?>, newChatId: String) {
         chatRef.document(newChatId).update(chatMap).addOnSuccessListener {
+            common.sendNotification(NEW_IMAGE_MESSAGE, newChatId)
             loadChats() //reload all chats after updating image
         }
                 .addOnFailureListener{
