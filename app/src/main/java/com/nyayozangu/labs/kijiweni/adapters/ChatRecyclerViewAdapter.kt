@@ -78,12 +78,10 @@ class ChatRecyclerViewAdapter(private val chatList: List<ChatMessage>,
         Log.d(TAG, "reply button clicked in adapter")
     }
 
-    //todo add a new view holder for the sent and received messages
-
     class SentMessageViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
 
         private val messageField: TextView = itemView.findViewById(R.id.sentMessageTextView)
-        private val replyButton : ImageButton = itemView.findViewById(R.id.sentMessageReplyImageButton)
+//        private val replyButton : ImageButton = itemView.findViewById(R.id.sentMessageReplyImageButton)
         private val progressBar: ProgressBar = itemView.findViewById(R.id.sentMessageChatListItemProgressBar)
         private val chatImageView: ImageView = itemView.findViewById(R.id.sentMessageImageView)
 
@@ -96,6 +94,7 @@ class ChatRecyclerViewAdapter(private val chatList: List<ChatMessage>,
                 messageField.visibility = View.VISIBLE
             }
             //handle image
+            glide.clear(chatImageView)
             val imageUrl = chat.chat_image_url
             val thumbUrl = chat.chat_thumb_url
             if (imageUrl != null && thumbUrl != null){
@@ -137,7 +136,7 @@ class ChatRecyclerViewAdapter(private val chatList: List<ChatMessage>,
         private val messageField: TextView = itemView.findViewById(R.id.receivedMessageTextView)
         private val progressBar: ProgressBar = itemView.findViewById(R.id.receivedMessageChatListItemProgressBar)
         private val chatImageView: ImageView = itemView.findViewById(R.id.receivedMessageImageView)
-        private val replyButton: ImageButton = itemView.findViewById(R.id.sentMessageReplyImageButton)
+//        private val replyButton: ImageButton = itemView.findViewById(R.id.sentMessageReplyImageButton)
 
         fun bind(chat: ChatMessage, glide: RequestManager, context: Context) {
             //set user data
@@ -146,6 +145,7 @@ class ChatRecyclerViewAdapter(private val chatList: List<ChatMessage>,
             val userImageUrl = chat.user_image_url
             userImageUrl?.let { common.setCircleImage(it, userImageView, glide) }
             //handle image
+            glide.clear(chatImageView)
             val imageUrl = chat.chat_image_url
             val thumbUrl = chat.chat_thumb_url
             if (imageUrl != null && thumbUrl != null){

@@ -39,6 +39,7 @@ import java.io.ByteArrayOutputStream
 import java.io.File
 import java.io.IOException
 import java.util.*
+import java.util.Calendar.HOUR_OF_DAY
 
 private const val RC_SIGN_IN = 0
 private const val PERMISSION_WRITE_EXTERNAL_STORAGE = 13
@@ -57,7 +58,8 @@ class MainActivity : AppCompatActivity(), View.OnClickListener, AdapterCallback 
     private lateinit var username: String
     private lateinit var userId: String
     private var chatImageUri: Uri? = null
-    private var chatImageUrl: String? = null
+    private lateinit var timeLimit: GregorianCalendar
+    private var hasImage = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -76,6 +78,8 @@ class MainActivity : AppCompatActivity(), View.OnClickListener, AdapterCallback 
         mAdapter = ChatRecyclerViewAdapter(chatList, Glide.with(this), this, callback)
         mRecyclerView.layoutManager = LinearLayoutManager(this)
         mRecyclerView.adapter = mAdapter
+        timeLimit = GregorianCalendar().apply { set(HOUR_OF_DAY, -24) }
+
         if (common.isLoggedIn()) {
             val user = common.currentUser()!!
             username = user.displayName.toString()
@@ -90,6 +94,7 @@ class MainActivity : AppCompatActivity(), View.OnClickListener, AdapterCallback 
         sendImageButton.setOnClickListener(this)
         selectedImageImageView.setOnClickListener(this)
         addImageImageButton.setOnClickListener(this)
+        cancelAddImageButton.setOnClickListener(this)
     }
 
 
@@ -130,7 +135,6 @@ class MainActivity : AppCompatActivity(), View.OnClickListener, AdapterCallback 
     }
 
     private fun cancelAddImage() {
-        chatImageUrl = null
         chatImageUri = null
         selectedImageImageView.visibility = View.GONE
         cancelAddImageButton.visibility = View.GONE
@@ -183,6 +187,7 @@ class MainActivity : AppCompatActivity(), View.OnClickListener, AdapterCallback 
     }
 
     private fun sendMessage() {
+        common.showProgress(progressBar)
         val message = chatFieldEditText.text.toString().trim()
         val timestamp = FieldValue.serverTimestamp()
         val chatMap: HashMap<String, Any?> = hashMapOf(
@@ -191,12 +196,11 @@ class MainActivity : AppCompatActivity(), View.OnClickListener, AdapterCallback 
                 USER_ID to userId,
                 USER_IMAGE_URL to userImageUrl
         )
-        if (!message.isEmpty()) {
-            uploadChatMessage(chatMap, message)
-        }else if (message.isEmpty() && chatImageUrl != null){
+        if (!message.isEmpty() || (message.isEmpty() && hasImage)) {
             uploadChatMessage(chatMap, message)
         }
         selectedImageImageView.visibility = View.GONE
+        cancelAddImageButton.visibility = View.GONE
         chatFieldEditText.text.clear()
     }
 
@@ -204,46 +208,37 @@ class MainActivity : AppCompatActivity(), View.OnClickListener, AdapterCallback 
         if (!message.isEmpty()) {
             chatMap[MESSAGE] = message
         }
-        //check if chat message has image
-        if (chatImageUrl != null){
-            //chat has image
-            chatMap[IMAGE_STATUS] = IMAGE_STATUS_IS_UPLOADING // image is uploading
-            addMessageToDb(chatMap)
-        }else{
-            chatMap[IMAGE_STATUS] = IMAGE_STATUS_HAS_NO_IMAGE //chat has no image
-            addMessageToDb(chatMap)
-        }
+        addMessageToDb(chatMap)
     }
 
     private fun addMessageToDb(chatMap: HashMap<String, Any?>) {
-        chatRef.add(chatMap).addOnSuccessListener {
-            Log.d(TAG, "message added to database")
-            mAdapter.notifyDataSetChanged()
-            common.stopLoading(progressBar)
-            //upload images to chats with images
-            val newChatId = it.id
-            if (chatImageUrl != null) {
-                chatImageUrl = null
-                doAsync {
-                    uploadChatImage(chatMap, newChatId)
-                }
-            }else{
-                common.sendNotification(NEW_TEXT_MESSAGE, newChatId)
+        if (hasImage){
+            chatMap[IMAGE_STATUS] = IMAGE_STATUS_IS_UPLOADING
+            hasImage = false
+            doAsync {
+                uploadChatImage(chatMap)
             }
+        }else{
+            chatMap[IMAGE_STATUS] = IMAGE_STATUS_HAS_NO_IMAGE
+            chatRef.add(chatMap).addOnSuccessListener {
+                mAdapter.notifyDataSetChanged() //todo check relevance
+                common.sendNotification(NEW_TEXT_MESSAGE, it.id)
+                common.stopLoading(progressBar)
+            }
+                    .addOnFailureListener{
+                        Log.d(TAG, "failed to add message to database: ${it.message}")
+                        common.stopLoading(progressBar)
+                        showSnack("${getString(R.string.error_text)}: ${it.message}")
+                    }
         }
-                .addOnFailureListener {
-                    Log.d(TAG, "failed to add message to database: ${it.message}")
-                    chatImageUrl = null
-                    common.stopLoading(progressBar)
-                    showSnack("${getString(R.string.error_text)}: ${it.message}")
-                }
     }
 
-    private fun uploadChatImage(chatMap: HashMap<String, Any?>, newChatId: String) {
+    private fun uploadChatImage(chatMap: HashMap<String, Any?>) {
         val randomId = UUID.randomUUID().toString()
         val filePath = common.storage().reference.child(CHAT_IMAGES).child("$randomId.jpg")
-        chatImageUri?.let { filePath.putFile(it).addOnSuccessListener {
-            val downloadUri = it.downloadUrl
+        chatImageUri?.let { uri ->
+            filePath.putFile(uri).addOnSuccessListener { snapshot ->
+                val downloadUri = snapshot.downloadUrl
             chatMap[CHAT_IMAGE_URL] = downloadUri.toString()
             val newImageFile = File(chatImageUri!!.path)
             try {
@@ -262,27 +257,33 @@ class MainActivity : AppCompatActivity(), View.OnClickListener, AdapterCallback 
                             val thumbDownloadUrl = it.downloadUrl
                             chatMap[CHAT_THUMB_URL] = thumbDownloadUrl.toString()
                             chatMap[IMAGE_STATUS] = IMAGE_STATUS_UPLOAD_SUCCESS
-                            updateChatMessageWithImage(chatMap, newChatId)
+                            updateChatMessageWithImage(chatMap)
                         }
                         .addOnFailureListener{
                             Log.e(TAG, "failed to update message ${it.message}")
                             chatMap[IMAGE_STATUS] = IMAGE_STATUS_ERROR_UPLOADING
-                            updateChatMessageWithImage(chatMap, newChatId)
+                            updateChatMessageWithImage(chatMap)
                             showSnack("${getString(R.string.error_text)}: ${it.message}")
                         }
             }catch (e: IOException){Log.e(TAG, "Error compressing a file${e.message}")}
         } }
     }
 
-    private fun updateChatMessageWithImage(chatMap: HashMap<String, Any?>, newChatId: String) {
-        chatRef.document(newChatId).update(chatMap).addOnSuccessListener {
-            common.sendNotification(NEW_IMAGE_MESSAGE, newChatId)
+    private fun updateChatMessageWithImage(chatMap: HashMap<String, Any?>) {
+//        chatMap[CREATED_AT] = FieldValue.serverTimestamp()//update the upload time
+        chatRef.add(chatMap).addOnSuccessListener {
+            val chatId = it.id
+            common.sendNotification(NEW_IMAGE_MESSAGE, chatId)
             loadChats() //reload all chats after updating image
+//            mAdapter.notifyDataSetChanged() //todo test loading images
         }
                 .addOnFailureListener{
                     Log.e(TAG, "filed to update chat message after uploading image: ${it.message}")
                     showSnack("${getString(R.string.error_text)}: ${it.message}")
                 }
+
+        chatImageUri = null //remove the image uri
+        hasImage = false
     }
 
     private fun showSnack(message: String) {
@@ -312,8 +313,8 @@ class MainActivity : AppCompatActivity(), View.OnClickListener, AdapterCallback 
         when (resultCode){
             Activity.RESULT_OK -> {
                 chatImageUri = result.uri
-                chatImageUrl = result.uri.toString()
-                common.setImage(chatImageUrl!!, selectedImageImageView, Glide.with(this))
+                hasImage = true
+                common.setImage(result.uri.toString(), selectedImageImageView, Glide.with(this))
                 selectedImageImageView.visibility = View.VISIBLE
                 cancelAddImageButton.visibility = View.VISIBLE
             }
@@ -321,11 +322,10 @@ class MainActivity : AppCompatActivity(), View.OnClickListener, AdapterCallback 
                 selectedImageImageView.visibility = View.GONE
                 cancelAddImageButton.visibility = View.GONE
                 val error = result.error
-                chatImageUrl = null
                 chatImageUri = null
+                hasImage = false
                 showSnack("${getString(R.string.error_text)}: ${error.message}")
             }else -> {
-            chatImageUrl = null
             chatImageUri = null
             selectedImageImageView.visibility = View.GONE
             cancelAddImageButton.visibility = View.GONE
@@ -374,7 +374,6 @@ class MainActivity : AppCompatActivity(), View.OnClickListener, AdapterCallback 
             }else{
                 addUser(userRef)
             }
-
         }
                 .addOnFailureListener{
                     val errorMessage = "${getString(R.string.error_text)}: ${it.message}"
@@ -435,7 +434,8 @@ class MainActivity : AppCompatActivity(), View.OnClickListener, AdapterCallback 
 //    }
 
     private fun loadChats() {
-        chatRef.orderBy(CREATED_AT, Query.Direction.ASCENDING)
+        chatRef.whereGreaterThan(CREATED_AT, timeLimit.time)
+                .orderBy(CREATED_AT, Query.Direction.ASCENDING)
                 .addSnapshotListener { querySnapshot, exception ->
             if (exception == null){
                 if (!querySnapshot?.isEmpty!!){

@@ -77,7 +77,7 @@ object Common {
         try {
             val placeHolderRequest = RequestOptions()
             placeHolderRequest.placeholder(R.color.colorWhite)
-            glide.applyDefaultRequestOptions(placeHolderRequest)
+            glide.applyDefaultRequestOptions(placeHolderRequest.fitCenter())
                     .load(imageUrl).into(mImageView)
         } catch (e: Exception) {
             Log.d(TAG, "error setting image\n + ${e.message}")
