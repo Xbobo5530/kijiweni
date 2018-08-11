@@ -76,9 +76,10 @@ object Common {
     fun setImage(imageUrl: String, mImageView: ImageView, glide: RequestManager) {
         try {
             val placeHolderRequest = RequestOptions()
-            placeHolderRequest.placeholder(R.color.colorWhite)
+//            placeHolderRequest.placeholder(R.color.colorWhite)
             glide.applyDefaultRequestOptions(placeHolderRequest.fitCenter())
-                    .load(imageUrl).into(mImageView)
+                    .load(imageUrl)
+                    .into(mImageView)
         } catch (e: Exception) {
             Log.d(TAG, "error setting image\n + ${e.message}")
         }
@@ -87,10 +88,10 @@ object Common {
                  glide: RequestManager) {
         try {
             val placeHolderRequest = RequestOptions()
-            placeHolderRequest.placeholder(R.color.colorWhite)
+//            placeHolderRequest.placeholder(R.color.colorWhite)
             glide.applyDefaultRequestOptions(placeHolderRequest.fitCenter())
                     .load(imageUrl)
-                    .transition(withCrossFade())
+//                    .transition(withCrossFade())
                     .thumbnail(glide.load(thumbUrl))
                     .into(mImageView)
         } catch (e: Exception) {

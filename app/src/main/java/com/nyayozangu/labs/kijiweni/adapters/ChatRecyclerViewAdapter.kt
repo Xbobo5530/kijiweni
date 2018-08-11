@@ -24,8 +24,7 @@ private val common: Common = Common
 //todo add two times of view types for the send and received messages
 class ChatRecyclerViewAdapter(private val chatList: List<ChatMessage>,
                               private val glide: RequestManager,
-                              private var context: Context?,
-                              private val callback: AdapterCallback?):
+                              private var context: Context?):
         RecyclerView.Adapter<RecyclerView.ViewHolder>() {
 
 
@@ -72,17 +71,9 @@ class ChatRecyclerViewAdapter(private val chatList: List<ChatMessage>,
         }
     }
 
-    private fun handleReplyMessage(callback: AdapterCallback?, chatId: String?) {
-        //pass the chat id to the main activity and handle reply from there
-        callback?.reply(chatId)
-        Log.d(TAG, "reply button clicked in adapter")
-    }
-
     class SentMessageViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
 
         private val messageField: TextView = itemView.findViewById(R.id.sentMessageTextView)
-//        private val replyButton : ImageButton = itemView.findViewById(R.id.sentMessageReplyImageButton)
-        private val progressBar: ProgressBar = itemView.findViewById(R.id.sentMessageChatListItemProgressBar)
         private val chatImageView: ImageView = itemView.findViewById(R.id.sentMessageImageView)
 
         fun bind(chat: ChatMessage, glide: RequestManager, context: Context){
@@ -94,34 +85,24 @@ class ChatRecyclerViewAdapter(private val chatList: List<ChatMessage>,
                 messageField.visibility = View.VISIBLE
             }
             //handle image
-            glide.clear(chatImageView)
             val imageUrl = chat.chat_image_url
             val thumbUrl = chat.chat_thumb_url
             if (imageUrl != null && thumbUrl != null){
                 val imageStatus = chat.image_status
                 when (imageStatus){
                     IMAGE_STATUS_HAS_NO_IMAGE -> {
-                        common.stopLoading(progressBar)
+                        glide.clear(chatImageView)
                         chatImageView.visibility = View.GONE
                     }
                     IMAGE_STATUS_UPLOAD_SUCCESS -> {
-                        common.stopLoading(progressBar)
                         common.setImage(imageUrl, thumbUrl, chatImageView, glide)
                         chatImageView.setOnClickListener {
                             context.startActivity<ViewImageActivity>(IMAGE_URL to imageUrl)
                         }
                         chatImageView.visibility = View.VISIBLE
                     }
-                    IMAGE_STATUS_IS_UPLOADING -> {
-                        common.showProgress(progressBar)
-                        chatImageView.visibility = View.GONE
-                    }
-                    IMAGE_STATUS_ERROR_UPLOADING -> {
-                        common.stopLoading(progressBar)
-                        chatImageView.setImageDrawable(context.getDrawable(R.drawable.ic_error))
-                    }
                     else -> {
-                        common.stopLoading(progressBar)
+                        glide.clear(chatImageView)
                         chatImageView.visibility = View.GONE
                     }
                 }
@@ -134,7 +115,6 @@ class ChatRecyclerViewAdapter(private val chatList: List<ChatMessage>,
         private val usernameField: TextView = itemView.findViewById(R.id.receivedMessageUsernameTextView)
         private val userImageView: ImageView = itemView.findViewById(R.id.receivedMessageUserImageView)
         private val messageField: TextView = itemView.findViewById(R.id.receivedMessageTextView)
-        private val progressBar: ProgressBar = itemView.findViewById(R.id.receivedMessageChatListItemProgressBar)
         private val chatImageView: ImageView = itemView.findViewById(R.id.receivedMessageImageView)
 //        private val replyButton: ImageButton = itemView.findViewById(R.id.sentMessageReplyImageButton)
 
@@ -145,34 +125,24 @@ class ChatRecyclerViewAdapter(private val chatList: List<ChatMessage>,
             val userImageUrl = chat.user_image_url
             userImageUrl?.let { common.setCircleImage(it, userImageView, glide) }
             //handle image
-            glide.clear(chatImageView)
             val imageUrl = chat.chat_image_url
             val thumbUrl = chat.chat_thumb_url
             if (imageUrl != null && thumbUrl != null){
                 val imageStatus = chat.image_status
                 when (imageStatus){
                     IMAGE_STATUS_HAS_NO_IMAGE -> {
-                        common.stopLoading(progressBar)
+                        glide.clear(chatImageView)
                         chatImageView.visibility = View.GONE
                     }
                     IMAGE_STATUS_UPLOAD_SUCCESS -> {
-                        common.stopLoading(progressBar)
                         chatImageView.visibility = View.VISIBLE
                         common.setImage(imageUrl, thumbUrl, chatImageView, glide)
                         chatImageView.setOnClickListener {
                             context.startActivity<ViewImageActivity>(IMAGE_URL to imageUrl)
                         }
                     }
-                    IMAGE_STATUS_IS_UPLOADING -> {
-                        common.showProgress(progressBar)
-                        chatImageView.visibility = View.GONE
-                    }
-                    IMAGE_STATUS_ERROR_UPLOADING -> {
-                        common.stopLoading(progressBar)
-                        chatImageView.setImageDrawable(context.getDrawable(R.drawable.ic_error))
-                    }
                     else -> {
-                        common.stopLoading(progressBar)
+                        glide.clear(chatImageView)
                         chatImageView.visibility = View.GONE
                     }
                 }
